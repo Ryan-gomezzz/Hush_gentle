@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  /* Calm pastel palette (Hush Gentle) */
+  --background: 40 33% 97%;
+  --foreground: 222 20% 16%;
+  --muted: 40 22% 94%;
+  --muted-foreground: 222 10% 40%;
+  --border: 40 16% 86%;
+  --card: 0 0% 100%;
+  --accent: 158 35% 42%;
+  --accent-soft: 158 30% 92%;
+  --danger: 0 70% 52%;
+  --warn: 28 80% 55%;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-card: hsl(var(--card));
+  --color-accent: hsl(var(--accent));
+  --color-accent-soft: hsl(var(--accent-soft));
+  --color-danger: hsl(var(--danger));
+  --color-warn: hsl(var(--warn));
+  --radius-lg: var(--radius);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* MVP: keep palette stable even if user prefers dark mode (less risk of unreadable UI). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 222 20% 16%;
+    --muted: 40 22% 94%;
+    --muted-foreground: 222 10% 40%;
+    --border: 40 16% 86%;
+    --card: 0 0% 100%;
+    --accent: 158 35% 42%;
+    --accent-soft: 158 30% 92%;
+    --danger: 0 70% 52%;
+    --warn: 28 80% 55%;
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI,
+    Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+
