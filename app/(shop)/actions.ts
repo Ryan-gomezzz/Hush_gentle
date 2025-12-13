@@ -9,13 +9,13 @@ import { getPaymentsProvider } from "@/lib/payments";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function ensurePublicUser(userId: string, email?: string | null) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.from("users").upsert({ id: userId, email: email ?? null });
   await supabase.from("profiles").upsert({ user_id: userId });
 }
 
 async function getOrCreateActiveCart(userId: string) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: existing, error: existingErr } = await supabase
     .from("carts")
     .select("id")
@@ -42,7 +42,7 @@ export async function addToCart(formData: FormData) {
   await ensurePublicUser(user.id, user.email);
   const cartId = await getOrCreateActiveCart(user.id);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("cart_items").upsert(
     {
       cart_id: cartId,
@@ -70,7 +70,7 @@ export async function updateCartItemQuantity(formData: FormData) {
   const user = await getUserOrRedirect("/login");
   await ensurePublicUser(user.id, user.email);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("cart_items")
     .update({ quantity: Math.max(1, quantity) })
@@ -85,7 +85,7 @@ export async function removeCartItem(formData: FormData) {
   const user = await getUserOrRedirect("/login");
   await ensurePublicUser(user.id, user.email);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
   if (error) throw error;
 
@@ -93,7 +93,7 @@ export async function removeCartItem(formData: FormData) {
 }
 
 async function getOrCreateWishlist(userId: string) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: existing, error: existingErr } = await supabase
     .from("wishlists")
     .select("id")
@@ -116,7 +116,7 @@ export async function toggleWishlist(formData: FormData) {
   const user = await getUserOrRedirect("/login");
   await ensurePublicUser(user.id, user.email);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const wishlistId = await getOrCreateWishlist(user.id);
 
   const { data: existing, error: existingErr } = await supabase
@@ -155,7 +155,7 @@ export async function placeOrder(formData: FormData) {
     pincode: String(formData.get("pincode") ?? ""),
   };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: cart, error: cartErr } = await supabase
     .from("carts")
     .select("id")
@@ -175,11 +175,19 @@ export async function placeOrder(formData: FormData) {
   type CartItemRow = {
     id: string;
     quantity: number;
-    products: { id: string; name: string; slug: string; price_inr: number };
+    products:
+      | Array<{ id: string; name: string; slug: string; price_inr: number }>
+      | { id: string; name: string; slug: string; price_inr: number };
   };
-  const typedItems = items as CartItemRow[];
+  const typedItems = (items as unknown as CartItemRow[]).map((it) => ({
+    ...it,
+    products: Array.isArray(it.products) ? it.products[0] : it.products,
+  }));
 
-  const subtotal = typedItems.reduce((sum, it) => sum + it.quantity * (it.products?.price_inr ?? 0), 0);
+  const subtotal = typedItems.reduce(
+    (sum, it) => sum + it.quantity * (it.products?.price_inr ?? 0),
+    0,
+  );
   const shipping = 0;
   const total = subtotal + shipping;
 

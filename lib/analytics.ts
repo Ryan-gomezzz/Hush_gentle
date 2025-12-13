@@ -8,8 +8,8 @@ export type AnalyticsEventName = ReturnType<typeof analyticsEventNameSchema.pars
 
 const SESSION_COOKIE = "hg_sid";
 
-export function getOrCreateSessionId() {
-  const store = cookies();
+export async function getOrCreateSessionId() {
+  const store = await cookies();
   const existing = store.get(SESSION_COOKIE)?.value;
   if (existing) return existing;
   const sid = crypto.randomUUID();
@@ -24,7 +24,7 @@ export function getOrCreateSessionId() {
 }
 
 async function ensurePublicUser(userId: string, email?: string | null) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.from("users").upsert({ id: userId, email: email ?? null });
   await supabase.from("profiles").upsert({ user_id: userId });
 }
@@ -38,8 +38,8 @@ export async function trackEventServer(input: {
   const parsed = analyticsIngestSchema.safeParse(input);
   if (!parsed.success) return;
 
-  const sid = getOrCreateSessionId();
-  const supabaseAuth = createSupabaseServerClient();
+  const sid = await getOrCreateSessionId();
+  const supabaseAuth = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabaseAuth.auth.getUser();
@@ -48,7 +48,7 @@ export async function trackEventServer(input: {
     await ensurePublicUser(user.id, user.email);
   }
 
-  const h = headers();
+  const h = await headers();
   const ref = parsed.data.referrer ?? h.get("referer") ?? null;
 
   const admin = createSupabaseAdminClient();

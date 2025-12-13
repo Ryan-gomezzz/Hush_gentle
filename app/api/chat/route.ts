@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const supabaseAuth = createSupabaseServerClient();
+  const supabaseAuth = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabaseAuth.auth.getUser();
@@ -58,6 +58,10 @@ export async function POST(req: Request) {
         .select("id")
         .single()
     ).data;
+
+  if (!sessionRow?.id) {
+    return NextResponse.json({ error: "Failed to create chat session" }, { status: 500 });
+  }
 
   // Log user message
   await admin.from("chatbot_messages").insert({

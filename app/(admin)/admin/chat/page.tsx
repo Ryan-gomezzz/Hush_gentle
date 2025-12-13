@@ -17,9 +17,12 @@ export default async function AdminChatPage() {
     role: string;
     content: string;
     created_at: string;
-    chatbot_sessions: { session_id: string; user_id: string | null } | null;
+    chatbot_sessions:
+      | Array<{ session_id: string; user_id: string | null }>
+      | { session_id: string; user_id: string | null }
+      | null;
   };
-  const typed = (messages ?? []) as Row[];
+  const typed = (messages ?? []) as unknown as Row[];
 
   return (
     <div className="space-y-6">
@@ -44,15 +47,23 @@ export default async function AdminChatPage() {
         </thead>
         <tbody>
           {typed.map((m) => (
+            // supabase embedded may be object or array; normalize here
+            (() => {
+              const s = Array.isArray(m.chatbot_sessions)
+                ? m.chatbot_sessions[0] ?? null
+                : m.chatbot_sessions;
+              return (
             <tr key={m.id}>
               <Td className="text-muted-foreground">
                 {new Date(m.created_at).toLocaleString()}
               </Td>
-              <Td className="text-muted-foreground">{m.chatbot_sessions?.session_id ?? "—"}</Td>
-              <Td className="text-muted-foreground">{m.chatbot_sessions?.user_id ?? "—"}</Td>
+              <Td className="text-muted-foreground">{s?.session_id ?? "—"}</Td>
+              <Td className="text-muted-foreground">{s?.user_id ?? "—"}</Td>
               <Td className="font-medium">{m.role}</Td>
               <Td className="text-muted-foreground">{m.content}</Td>
             </tr>
+              );
+            })()
           ))}
         </tbody>
       </Table>

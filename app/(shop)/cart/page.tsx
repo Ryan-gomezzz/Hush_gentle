@@ -11,7 +11,7 @@ import { formatINR } from "@/utils/format";
 
 export default async function CartPage() {
   const user = await getUserOrRedirect("/login");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: cart } = await supabase
     .from("carts")
@@ -55,16 +55,28 @@ export default async function CartPage() {
   type CartItemRow = {
     id: string;
     quantity: number;
-    products: {
-      id: string;
-      name: string;
-      slug: string;
-      price_inr: number;
-      short_benefit: string | null;
-      product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
-    };
+    products:
+      | Array<{
+          id: string;
+          name: string;
+          slug: string;
+          price_inr: number;
+          short_benefit: string | null;
+          product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
+        }>
+      | {
+          id: string;
+          name: string;
+          slug: string;
+          price_inr: number;
+          short_benefit: string | null;
+          product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
+        };
   };
-  const typedList = list as CartItemRow[];
+  const typedList = ((list as unknown) as CartItemRow[]).map((it) => ({
+    ...it,
+    products: Array.isArray(it.products) ? it.products[0] : it.products,
+  }));
   const subtotal = typedList.reduce((sum, it) => sum + it.quantity * (it.products?.price_inr ?? 0), 0);
 
   return (

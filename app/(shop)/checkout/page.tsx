@@ -11,7 +11,7 @@ import { formatINR } from "@/utils/format";
 
 export default async function CheckoutPage() {
   const user = await getUserOrRedirect("/login");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   await trackEventServer({ event_name: "checkout_started", path: "/checkout" });
 
@@ -64,9 +64,12 @@ export default async function CheckoutPage() {
   type CheckoutItemRow = {
     id: string;
     quantity: number;
-    products: { id: string; name: string; price_inr: number };
+    products: Array<{ id: string; name: string; price_inr: number }> | { id: string; name: string; price_inr: number };
   };
-  const typedList = list as CheckoutItemRow[];
+  const typedList = ((list as unknown) as CheckoutItemRow[]).map((it) => ({
+    ...it,
+    products: Array.isArray(it.products) ? it.products[0] : it.products,
+  }));
   const subtotal = typedList.reduce((sum, it) => sum + it.quantity * (it.products?.price_inr ?? 0), 0);
   const shipping = 0;
   const total = subtotal + shipping;

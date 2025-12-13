@@ -13,7 +13,7 @@ export default async function OrderConfirmationPage({
   params: { orderId: string };
 }) {
   const user = await getUserOrRedirect("/login");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: order, error: orderErr } = await supabase
     .from("orders")
@@ -67,7 +67,17 @@ export default async function OrderConfirmationPage({
           <CardContent>
             <h2 className="text-base font-semibold">Items</h2>
             <div className="mt-4 space-y-3 text-sm">
-              {((items ?? []) as Array<{ id: string; quantity: number; price_inr: number; products: { name: string; slug: string } }>).map((it) => (
+              {(((items ?? []) as unknown) as Array<{
+                id: string;
+                quantity: number;
+                price_inr: number;
+                products: Array<{ name: string; slug: string }> | { name: string; slug: string };
+              }>)
+                .map((it) => ({
+                  ...it,
+                  products: Array.isArray(it.products) ? it.products[0] : it.products,
+                }))
+                .map((it) => (
                 <div key={it.id} className="flex items-center justify-between">
                   <Link href={`/products/${it.products.slug}`} className="text-muted-foreground hover:text-foreground">
                     {it.products.name} × {it.quantity}

@@ -5,14 +5,14 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button, ButtonLink } from "@/components/ui/Button";
 
 export async function Header() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   async function signOut() {
     "use server";
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();
   }
 

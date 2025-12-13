@@ -11,7 +11,7 @@ import { formatINR } from "@/utils/format";
 
 export default async function WishlistPage() {
   const user = await getUserOrRedirect("/login");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: wishlist } = await supabase
     .from("wishlists")
@@ -53,16 +53,28 @@ export default async function WishlistPage() {
 
   type WishlistItemRow = {
     id: string;
-    products: {
-      id: string;
-      name: string;
-      slug: string;
-      price_inr: number;
-      short_benefit: string | null;
-      product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
-    };
+    products:
+      | Array<{
+          id: string;
+          name: string;
+          slug: string;
+          price_inr: number;
+          short_benefit: string | null;
+          product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
+        }>
+      | {
+          id: string;
+          name: string;
+          slug: string;
+          price_inr: number;
+          short_benefit: string | null;
+          product_images: Array<{ path: string; alt: string | null; sort_order: number }>;
+        };
   };
-  const typedList = list as WishlistItemRow[];
+  const typedList = ((list as unknown) as WishlistItemRow[]).map((it) => ({
+    ...it,
+    products: Array.isArray(it.products) ? it.products[0] : it.products,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-4xl px-[var(--spacing-pageX)] py-10">

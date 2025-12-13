@@ -2,7 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AmazonReview, Category, Product, ProductImage, Testimonial } from "@/types/domain";
 
 export async function getCategories(): Promise<Category[]> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("categories")
     .select("id,name,slug,description")
@@ -12,7 +12,7 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function getFeaturedProducts(limit = 4) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("products")
     .select("*, product_images(path,alt,sort_order)")
@@ -25,7 +25,7 @@ export async function getFeaturedProducts(limit = 4) {
 }
 
 export async function getProducts(params: { categorySlug?: string | null } = {}) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   if (params.categorySlug) {
     const { data: cat, error: catErr } = await supabase
@@ -56,7 +56,7 @@ export async function getProducts(params: { categorySlug?: string | null } = {})
 }
 
 export async function getProductBySlug(slug: string) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("products")
     .select("*, product_images(path,alt,sort_order), categories(name,slug)")
@@ -68,7 +68,7 @@ export async function getProductBySlug(slug: string) {
 }
 
 export async function getPublishedTestimonials(): Promise<Testimonial[]> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("testimonials")
     .select("id,display_name,rating,content")
@@ -80,7 +80,7 @@ export async function getPublishedTestimonials(): Promise<Testimonial[]> {
 }
 
 export async function getAmazonReviewsForProduct(productId: string): Promise<AmazonReview[]> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("amazon_reviews")
     .select("id,product_id,rating,title,content,reviewer_name,reviewed_at,is_verified")

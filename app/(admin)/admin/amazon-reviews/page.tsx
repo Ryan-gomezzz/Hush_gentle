@@ -130,16 +130,20 @@ export default async function AdminAmazonReviewsPage() {
           </tr>
         </thead>
         <tbody>
-          {((reviews ?? []) as Array<{
+          {((reviews ?? []) as unknown as Array<{
             id: string;
             rating: number;
             title: string | null;
             content: string;
             is_verified: boolean;
-            products: { name: string } | null;
+            products: Array<{ name: string }> | { name: string } | null;
           }>).map((r) => (
             <tr key={r.id}>
-              <Td className="font-medium">{r.products?.name ?? "—"}</Td>
+              <Td className="font-medium">
+                {Array.isArray(r.products)
+                  ? r.products[0]?.name ?? "—"
+                  : r.products?.name ?? "—"}
+              </Td>
               <Td>{r.rating}★</Td>
               <Td className="text-muted-foreground">{r.is_verified ? "Yes" : "No"}</Td>
               <Td className="text-muted-foreground">{r.title ?? "—"}</Td>

@@ -15,7 +15,7 @@ export const analyticsIngestSchema = z.object({
   event_name: analyticsEventNameSchema,
   path: z.string().min(1).max(2048),
   referrer: z.string().max(2048).optional().nullable(),
-  meta: z.record(z.any()).optional().nullable(),
+  meta: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 
 
