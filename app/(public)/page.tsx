@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { ButtonLink } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ProductCard } from "@/components/ProductCard";
@@ -36,13 +34,18 @@ export default async function HomePage() {
 
           <div className="overflow-hidden rounded-2xl border border-border bg-muted">
             <div className="relative aspect-[16/10] w-full">
-              <Image
-                src="/images/brand/Banner_product.png"
-                alt="Hush Gentle hero"
-                fill
-                className="object-cover"
-                priority
-              />
+              <video
+                className="h-full w-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="/images/brand/Banner_product.png"
+              >
+                <source src="/videos/hero.webm" type="video/webm" />
+                <source src="/videos/hero.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
         </div>

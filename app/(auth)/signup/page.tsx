@@ -7,7 +7,16 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  // Next.js 16: `searchParams` is a Promise in Server Components
+  searchParams: Promise<{ error?: string; email?: string }>;
+}) {
+  const sp = await searchParams;
+  const errorMessage = sp.error ? decodeURIComponent(sp.error) : null;
+  const emailPrefill = sp.email ? decodeURIComponent(sp.email) : "";
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -20,18 +29,24 @@ export default async function SignupPage() {
     const password = String(formData.get("password") ?? "");
 
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.signUp({
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    const emailRedirectTo = siteUrl ? `${siteUrl}/callback` : undefined;
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/callback`,
+        emailRedirectTo,
       },
     });
 
     if (error) {
-      redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+      redirect(`/signup?email=${encodeURIComponent(email)}&error=${encodeURIComponent(error.message)}`);
     }
-    redirect("/");
+
+    // If email confirmation is enabled in Supabase, `session` will be null here.
+    if (data.session) redirect("/");
+    redirect(`/signup/success?email=${encodeURIComponent(email)}`);
   }
 
   return (
@@ -49,7 +64,14 @@ export default async function SignupPage() {
               <label className="text-sm font-medium" htmlFor="email">
                 Email
               </label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                defaultValue={emailPrefill}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="password">
@@ -63,6 +85,9 @@ export default async function SignupPage() {
                 autoComplete="new-password"
               />
             </div>
+            {errorMessage ? (
+              <p className="text-sm text-danger">{errorMessage}</p>
+            ) : null}
             <Button type="submit" className="w-full">
               Create account
             </Button>

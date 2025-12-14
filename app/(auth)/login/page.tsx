@@ -7,7 +7,16 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  // Next.js 16: `searchParams` is a Promise in Server Components
+  searchParams: Promise<{ error?: string; message?: string }>;
+}) {
+  const sp = await searchParams;
+  const errorMessage = sp.error ? decodeURIComponent(sp.error) : null;
+  const infoMessage = sp.message ? decodeURIComponent(sp.message) : null;
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -26,9 +35,6 @@ export default async function LoginPage() {
     }
     redirect("/");
   }
-
-  const error = (await Promise.resolve(null)) as null;
-  // NOTE: Error display is handled via query param in the UI layer later; keep MVP simple here.
 
   return (
     <div className="mx-auto w-full max-w-md px-[var(--spacing-pageX)] py-12">
@@ -59,9 +65,10 @@ export default async function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
-            {error ? (
-              <p className="text-sm text-danger">{String(error)}</p>
+            {infoMessage ? (
+              <p className="text-sm text-muted-foreground">{infoMessage}</p>
             ) : null}
+            {errorMessage ? <p className="text-sm text-danger">{errorMessage}</p> : null}
             <Button type="submit" className="w-full">
               Sign in
             </Button>

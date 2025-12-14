@@ -5,9 +5,11 @@ import { getCategories, getProducts } from "@/lib/storefront";
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  // Next.js 16: `searchParams` is a Promise in Server Components
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const category = searchParams.category ?? null;
+  const sp = await searchParams;
+  const category = sp.category ?? null;
 
   const [categories, products] = await Promise.all([
     getCategories(),

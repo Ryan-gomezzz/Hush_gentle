@@ -12,9 +12,11 @@ import { formatINR } from "@/utils/format";
 export default async function ProductDetailPage({
   params,
 }: {
-  params: { slug: string };
+  // Next.js 16: `params` is a Promise in Server Components
+  params: Promise<{ slug: string }>;
 }) {
-  const product = await getProductBySlug(params.slug);
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
   const amazonReviews = await getAmazonReviewsForProduct(product.id);
